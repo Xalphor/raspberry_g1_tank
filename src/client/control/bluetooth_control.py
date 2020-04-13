@@ -1,17 +1,18 @@
 #-*- coding:UTF-8 -*-
+
 import RPi.GPIO as GPIO
 import time
 import string
 import serial
 
-#按键值定义
-run_car  = '1'  #按键前
-back_car = '2'  #按键后
-left_car = '3'  #按键左
-right_car = '4' #按键右
-stop_car = '0'  #按键停
+#Key value definition
+run_car  = '1'  # Before key
+back_car = '2'  #After button
+left_car = '3'  #KEY LEFT
+right_car = '4' #KEYRIGHT
+stop_car = '0'  #Button stop
 
-#状态值定义
+#Status value definition
 enSTOP = 0
 enRUN =1
 enBACK = 2
@@ -20,8 +21,7 @@ enRIGHT = 4
 enTLEFT =5
 enTRIGHT = 6
 
-
-#小车电机引脚定义
+#Cart motor pin definition
 IN1 = 20
 IN2 = 21
 IN3 = 19
@@ -29,44 +29,45 @@ IN4 = 26
 ENA = 16
 ENB = 13
 
-#小车按键定义
+#Car button definition
 key = 8
 
-#超声波引脚定义
+#Ultrasonic pin definition
 EchoPin = 0
 TrigPin = 1
 
-#RGB三色灯引脚定义
+#RGB tricolor lamp pin definition
 LED_R = 22
 LED_G = 27
 LED_B = 24 
 
-#舵机引脚定义
+#Servo pin definition
 ServoPin = 23
 
-#红外避障引脚定义
+#Infrared obstacle avoidance pin definition
 AvoidSensorLeft = 12
 AvoidSensorRight = 17
 
-#蜂鸣器引脚定义
+#Buzzer pin definition
 buzzer = 8
 
-#灭火电机引脚设置
+#Fire extinguishing motor pin settings
 OutfirePin = 2
 
-#循迹红外引脚定义
+#Tracking infrared pin definition
 #TrackSensorLeftPin1 TrackSensorLeftPin2 TrackSensorRightPin1 TrackSensorRightPin2
 #      3                 5                  4                   18
-TrackSensorLeftPin1  =  3   #定义左边第一个循迹红外传感器引脚为3口
-TrackSensorLeftPin2  =  5   #定义左边第二个循迹红外传感器引脚为5口
-TrackSensorRightPin1 =  4   #定义右边第一个循迹红外传感器引脚为4口
-TrackSensorRightPin2 =  18  #定义右边第二个循迹红外传感器引脚为18口
+TrackSensorLeftPin1  =  3   #Define the first tracking infrared sensor pin on the left as 3 ports
+TrackSensorLeftPin2  =  5   #Define the second tracking infrared sensor pin on the left as 5 ports
+TrackSensorRightPin1 =  4   #Define the first tracking infrared sensor pin on the right as 4 ports
+TrackSensorRightPin2 =  18  #Define the second tracking infrared sensor pin on the right as 18 ports
 
-#光敏电阻引脚定义
+
+#Photosensitive resistor pin definition
 LdrSensorLeft = 7
 LdrSensorRight = 6
 
-#串口计时全局变量定义
+#Serial timing global variable definition
 global timecount 
 global count 
 
@@ -85,16 +86,16 @@ infrared_track_value = ''
 infrared_avoid_value = ''
 LDR_value = ''
 StartBit = 0
-#设置GPIO口为BCM编码方式
+#Set GPIO port to BCM encoding mode
 GPIO.setmode(GPIO.BCM)
 
-#忽略警告信息
+#Ignore warning message
 GPIO.setwarnings(False)
 
-#电机引脚初始化为输出模式
-#按键引脚初始化为输入模式
-#超声波,RGB三色灯,舵机引脚初始化
-#红外避障引脚初始化
+#Motor pin is initialized to output mode
+#Key pin is initialized to input mode
+#Ultrasonic, RGB tri-color lights, servo pin initialization
+#Infrared obstacle avoidance pin initialization
 def init():
     global pwm_ENA
     global pwm_ENB
@@ -125,12 +126,12 @@ def init():
     GPIO.setup(TrackSensorLeftPin2,GPIO.IN)
     GPIO.setup(TrackSensorRightPin1,GPIO.IN)
     GPIO.setup(TrackSensorRightPin2,GPIO.IN)
-    #设置pwm引脚和频率为2000hz
+    #Set the pwm pin and frequency to 2000hz
     pwm_ENA = GPIO.PWM(ENA, 2000)
     pwm_ENB = GPIO.PWM(ENB, 2000)
     pwm_ENA.start(0)
     pwm_ENB.start(0)
-    #设置舵机的频率和起始占空比
+    #Set the servo frequency and initial duty cycle
     pwm_servo = GPIO.PWM(ServoPin, 50)
     pwm_servo.start(0)
     pwm_rled = GPIO.PWM(LED_R, 1000)
@@ -141,8 +142,7 @@ def init():
     pwm_bled.start(0)
 	
 
-	
-#小车前进	
+# 小车 前进
 def run():
     GPIO.output(IN1, GPIO.HIGH)
     GPIO.output(IN2, GPIO.LOW)
@@ -151,7 +151,7 @@ def run():
     pwm_ENA.ChangeDutyCycle(CarSpeedControl)
     pwm_ENB.ChangeDutyCycle(CarSpeedControl)
 
-#小车后退
+# 小车 回回
 def back():
     GPIO.output(IN1, GPIO.LOW)
     GPIO.output(IN2, GPIO.HIGH)
@@ -160,7 +160,7 @@ def back():
     pwm_ENA.ChangeDutyCycle(CarSpeedControl)
     pwm_ENB.ChangeDutyCycle(CarSpeedControl)
 	
-#小车左转	
+# 小车 左转
 def left():
     GPIO.output(IN1, GPIO.LOW)
     GPIO.output(IN2, GPIO.LOW)
@@ -169,7 +169,7 @@ def left():
     pwm_ENA.ChangeDutyCycle(CarSpeedControl)
     pwm_ENB.ChangeDutyCycle(CarSpeedControl)
 
-#小车右转
+# 小车 转转 转
 def right():
     GPIO.output(IN1, GPIO.HIGH)
     GPIO.output(IN2, GPIO.LOW)
@@ -178,7 +178,7 @@ def right():
     pwm_ENA.ChangeDutyCycle(CarSpeedControl)
     pwm_ENB.ChangeDutyCycle(CarSpeedControl)
 	
-#小车原地左转
+# 小车 转转 左左
 def spin_left():
     GPIO.output(IN1, GPIO.LOW)
     GPIO.output(IN2, GPIO.HIGH)
@@ -187,7 +187,7 @@ def spin_left():
     pwm_ENA.ChangeDutyCycle(CarSpeedControl)
     pwm_ENB.ChangeDutyCycle(CarSpeedControl)
 
-#小车原地右转
+# 小车 转转 右 右
 def spin_right():
     GPIO.output(IN1, GPIO.HIGH)
     GPIO.output(IN2, GPIO.LOW)
@@ -196,14 +196,14 @@ def spin_right():
     pwm_ENA.ChangeDutyCycle(CarSpeedControl)
     pwm_ENB.ChangeDutyCycle(CarSpeedControl)
 
-#小车停止	
+# 小车 STOP
 def brake():
    GPIO.output(IN1, GPIO.LOW)
    GPIO.output(IN2, GPIO.LOW)
    GPIO.output(IN3, GPIO.LOW)
    GPIO.output(IN4, GPIO.LOW)
 
-#按键检测
+#Key detection
 def key_scan():
     while GPIO.input(key):
         pass
@@ -214,7 +214,7 @@ def key_scan():
             while not GPIO.input(key):
 	        pass
 				
-#超声波函数
+#Ultrasonic function
 def Distance_test():
     GPIO.output(TrigPin,GPIO.HIGH)
     time.sleep(0.000015)
@@ -229,16 +229,16 @@ def Distance_test():
     time.sleep(0.01)
     return ((t2 - t1)* 340 / 2) * 100
 	
-#舵机旋转到指定角度
+#Servo rotates to the specified angle
 def servo_appointed_detection(pos):
     for i in range(18):
         pwm_servo.ChangeDutyCycle(2.5 + 10 * pos/180)
 
-#巡线测试
+#Line inspection test
 def tracking_test():
     global infrared_track_value
-    #检测到黑线时循迹模块相应的指示灯亮，端口电平为LOW
-    #未检测到黑线时循迹模块相应的指示灯灭，端口电平为HIGH
+    #When the black line is detected, the corresponding indicator of the tracking module is on, and the port level is LOW
+    #When no black line is detected, the corresponding indicator of the tracking module is off, the port level is HIGH
     TrackSensorLeftValue1  = GPIO.input(TrackSensorLeftPin1)
     TrackSensorLeftValue2  = GPIO.input(TrackSensorLeftPin2)
     TrackSensorRightValue1 = GPIO.input(TrackSensorRightPin1)
@@ -251,11 +251,11 @@ def tracking_test():
     infrared_track_value = ''.join(infrared_track_value_list)
     
 
-#避障红外引脚测试
+#Obstacle avoidance infrared pin test
 def infrared_avoid_test():
     global infrared_avoid_value
-    #遇到障碍物,红外避障模块的指示灯亮,端口电平为LOW
-    #未遇到障碍物,红外避障模块的指示灯灭,端口电平为HIGH
+    #In case of obstacles, the indicator light of the infrared obstacle avoidance module is on, and the port level is LOW
+    #No obstacles are encountered, the indicator light of the infrared obstacle avoidance module is off, and the port level is HIGH
     LeftSensorValue  = GPIO.input(AvoidSensorLeft)
     RightSensorValue = GPIO.input(AvoidSensorRight)
     infrared_avoid_value_list = ['0','0']
@@ -263,11 +263,11 @@ def infrared_avoid_test():
     infrared_avoid_value_list[1] = str(1 ^ RightSensorValue)
     infrared_avoid_value = ''.join(infrared_avoid_value_list)
     	
-#寻光引脚测试
+#Lighting pin test
 def follow_light_test():
     global LDR_value
-    #遇到光线,寻光模块的指示灯灭,端口电平为HIGH
-    #未遇光线,寻光模块的指示灯亮,端口电平为LOW
+    #In case of light, the indicator light of the light seeking module is off, and the port level is HIGH
+    #No light, the indicator light of the light seeking module is on, and the port level is LOW
     LdrSersorLeftValue  = GPIO.input(LdrSensorLeft)
     LdrSersorRightValue = GPIO.input(LdrSensorRight)  
     LDR_value_list = ['0','0']
@@ -275,14 +275,14 @@ def follow_light_test():
     LDR_value_list[1] = str(LdrSersorRightValue)	
     LDR_value = ''.join(LDR_value_list)
 	
-#小车鸣笛
+# 小车 鸣声
 def whistle():
     GPIO.output(buzzer, GPIO.LOW)
     time.sleep(0.1)
     GPIO.output(buzzer, GPIO.HIGH)
     time.sleep(0.001)	
 	
-#七彩灯亮指定颜色
+#Colorful lights on the specified color
 def color_led_pwm(iRed,iGreen, iBlue):
     print iRed 
     print iGreen
@@ -298,7 +298,7 @@ def color_led_pwm(iRed,iGreen, iBlue):
     pwm_bled.ChangeDutyCycle(v_blue)
     time.sleep(0.02)
 	
-#串口数据解析并指定相应的动作
+#Serial data analysis and specify the corresponding action
 def serial_data_parse():
     global NewLineReceived
     global CarSpeedControl
